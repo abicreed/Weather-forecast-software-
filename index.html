@@ -91,25 +91,3 @@ function displayNotes() {
         </li>
     `).join('');
 }
-
-// Add Note
-document.getElementById('noteForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const noteText = document.getElementById('noteText').value.trim();
-    if (noteText) {
-        notes.push(noteText);
-        localStorage.setItem('weatherNotes', JSON.stringify(notes));
-        document.getElementById('noteText').value = '';
-        displayNotes();
-    }
-});
-
-// Delete Note
-function deleteNote(index) {
-    notes.splice(index, 1);
-    localStorage.setItem('weatherNotes', JSON.stringify(notes));
-    displayNotes();
-}
-
-// Initial Display
-displayNotes();
