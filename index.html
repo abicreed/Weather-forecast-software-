@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center">Weather Forecast Software</h1>
+        <div class="row my-4">
+            <div class="col-md-6">
+                <form id="weatherForm">
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" id="location" class="form-control" placeholder="Enter location (e.g., Ilam)">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Get Weather</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div id="weatherResult" class="text-center"></div>
+            </div>
+        </div>
+        <hr>
+        <h2>Weather Notes</h2>
+        <form id="noteForm">
+            <div class="mb-3">
+                <label for="noteText" class="form-label">Add Note</label>
+                <input type="text" id="noteText" class="form-control" placeholder="Enter your note">
+            </div>
+            <button type="submit" class="btn btn-success w-100">Add Note</button>
+        </form>
+        <ul id="notesList" class="list-group mt-3"></ul>
+    </div>
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+h1, h2 {
+    font-weight: bold;
+}
+// OpenWeatherMap API Key
+const API_KEY = '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';
+
+// Fetch Weather Data
+document.getElementById('weatherForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const location = document.getElementById('location').value.trim();
+    if (!location) {
+        alert('Please enter a location!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}`);
+        const data = await response.json();
+        if (data.cod !== 200) {
+            document.getElementById('weatherResult').innerHTML = `<p class="text-danger">Error: ${data.message}</p>`;
+        } else {
+            const rainChance = data.rain ? data.rain["1h"] || 0 : 0;
+            document.getElementById('weatherResult').innerHTML = `
+                <h3>${data.name}</h3>
+                <p>Temperature: ${(data.main.temp - 273.15).toFixed(2)}°C</p>
+                <p>Rain Chance: ${rainChance}%</p>
+            `;
+        }
+    } catch (error) {
+        console.error('Error fetching weather data:', error);
+    }
+});
+
+// CRUD Operations with localStorage
+let notes = JSON.parse(localStorage.getItem('weatherNotes')) || [];
+
+// Display Notes
+function displayNotes() {
+    const notesList = document.getElementById('notesList');
+    notesList.innerHTML = notes.map((note, index) => `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            ${note}
+            <button class="btn btn-danger btn-sm" onclick="deleteNote(${index})">Delete</button>
+        </li>
+    `).join('');
+}
+
+// Add Note
+document.getElementById('noteForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const noteText = document.getElementById('noteText').value.trim();
+    if (noteText) {
+        notes.push(noteText);
+        localStorage.setItem('weatherNotes', JSON.stringify(notes));
+        document.getElementById('noteText').value = '';
+        displayNotes();
+    }
+});
+
+// Delete Note
+function deleteNote(index) {
+    notes.splice(index, 1);
+    localStorage.setItem('weatherNotes', JSON.stringify(notes));
+    displayNotes();
+}
+
+// Initial Display
+displayNotes();
